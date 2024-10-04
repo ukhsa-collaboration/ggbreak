@@ -1,0 +1,13 @@
+Package: ggbreak
+Title: Breaking the numeric axis in ggplot2
+Version: 0.0.0.9000
+Authors@R: 
+    person("Si", "Maxwell", , "simon.maxwell@ukhsa.gov.uk", role = c("aut", "cre"))
+Description: Add a break symbol to the y-axis of a ggplot object.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Imports: 
+    ggplot2,
+    scales
