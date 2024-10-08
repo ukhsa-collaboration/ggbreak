@@ -2,11 +2,11 @@
 
 ## Purpose
 
-ggbreak is a one-function R package for adding a [y-axis break symbol](https://commons.wikimedia.org/wiki/File:Y-axis_break.svg) to a chart made using ggplot2.
+ggbreak is a one-function R package for adding a [y-axis break symbol](https://commons.wikimedia.org/wiki/File:Y-axis_break.svg) to a line chart made using ggplot2. (The function will return an error if any other chart type is supplied.)
 
-The package has been developed to support analysts in ensuring their charts comply with [Government Analysis Function data visualisation guidance](https://analysisfunction.civilservice.gov.uk/policy-store/data-visualisation-charts/) on breaking the y-axis.
+The package has been developed to support analysts in ensuring their charts comply with [Government Analysis Function data visualisation guidance](https://analysisfunction.civilservice.gov.uk/policy-store/data-visualisation-charts/) on breaking or truncating the numerical axis.
 
-Current Analysis Function guidance draws the break symbol on in Microsoft PowerPoint. Using `add_break_symbol()` is a reproducible alternative which you can include in your typical data visualisation workflow.
+Current Analysis Function guidance recommends drawing the break symbol on in Microsoft PowerPoint. Using `add_break_symbol()` is a reproducible alternative which you can include in your typical data visualisation workflow.
 
 ## Installation
 
