@@ -48,7 +48,7 @@ p +
 
 ![](man/img/plot-with-break.svg)
 
-`add_break_symbol()` can take a range of additional arguments which control the scale of the y-axis and the formatting of the break symbol.
+`add_break_symbol()` can take a range of additional arguments which control the scale of the y-axis and the formatting of the break symbol. For this reason, you should not use `scale_y_continuous()` to format your y-axis (for example the breaks, labels, limits) – all formatting of the y-axis must be specified within `add_break_symbol()`.
 
 ### Example 2: line chart with break symbol and Analysis Function theme
 
@@ -73,7 +73,7 @@ plot_break_af <- plot_break_af +
 
 ## Acknowledgements
 
-Authors: Analytics and Data Science Directorate, UK Health Security Agency.
+Author: Analysis and Intelligence Assessment, Chief Data Officer Group, UK Health Security Agency.
 
 ## Licence
 
