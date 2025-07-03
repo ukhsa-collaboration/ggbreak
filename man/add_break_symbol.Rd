@@ -2,65 +2,95 @@
 % Please edit documentation in R/add_break_symbol.R
 \name{add_break_symbol}
 \alias{add_break_symbol}
-\title{Add break symbol to ggplot object}
+\title{Add break symbol to the y-axis of a ggplot2 line chart}
 \usage{
 add_break_symbol(
-  p,
-  y = NULL,
-  y_spacing = NULL,
-  y_origin = 0,
-  y_fmt = NULL,
-  y_fmt_args = list(),
-  height = 1,
-  width = 1,
-  linewidth = 0.5
+  plot,
+  break_at,
+  y_breaks = waiver(),
+  y_labels = waiver(),
+  y_limits = NULL,
+  y_origin_override = NULL,
+  break_style = list(height = 1, width = 1, linewidth = 0.5)
 )
 }
 \arguments{
-\item{p}{a ggplot object.}
+\item{plot}{A ggplot2 plot object to which the break symbol and axis
+modifications will be added.}
 
-\item{y}{a numeric vector (default: NULL). Position of the break symbol on the y-axis. If empty, placement of break symbol determined internally.}
+\item{break_at}{Numeric scalar specifying the y-axis coordinate at which
+to place the break symbol.}
 
-\item{y_spacing}{a numeric vector (default: NULL).}
+\item{y_breaks}{Numeric vector or \code{waiver()} specifying the breaks
+on the y-axis. Passed to \code{\link[ggplot2]{scale_y_continuous}(breaks =)}.
+Defaults to \code{waiver()}, letting ggplot2 determine breaks automatically.}
 
-\item{y_origin}{a numeric vector (default: zero).}
+\item{y_labels}{Either a vector of labels corresponding to \code{y_breaks},
+a labeling function (e.g., from \code{\link[scales]{label_percent}}), or
+\code{waiver()}. Passed to
+\code{\link[ggplot2]{scale_y_continuous}(labels=)}.}
 
-\item{y_fmt}{a character vector (default: NULL). Character string: comma, percent, number, currency, etc.}
+\item{y_limits}{Numeric vector of length two specifying the limits of the
+y-axis. Passed to \code{\link[ggplot2]{scale_y_continuous}(limits =)}.
+Defaults to \code{NULL}, which lets ggplot2 use default limits.}
 
-\item{y_fmt_args}{a list. Additional arguments (such as accuracy and prefix) which can be passed to \verb{label_*()}.}
+\item{y_origin_override}{Optional numeric value to replace the first
+y-axis value before applying \code{y_labels}. This allows customisation of
+the label under the break symbol (for example, setting \code{0.4} to appear
+as \code{0}).}
 
-\item{height}{a numeric vector (default: 1). The gap in the break symbol.}
-
-\item{width}{a numeric vector (default: 1). The width of the break symbol.}
-
-\item{linewidth}{a numeric vector (default: 0.5). The line width of the break symbol.}
+\item{break_style}{A named list controlling the break symbol appearance:
+\describe{
+\item{height}{Numeric scalar indicating the vertical size of the break symbol
+(default 1).}
+\item{width}{Numeric scalar indicating the horizontal size of the break symbol
+(default 1).}
+\item{linewidth}{Numeric scalar controlling the width of the break symbol
+(default 0.5).}
+}}
 }
 \value{
-a ggplot object.
+A modified ggplot2 plot object with the y-axis break symbol and
+adjusted axis scale applied.
 }
 \description{
-Add break symbol to ggplot object
+Adds a visual break symbol (two diagonal parallel lines) to indicate
+a broken or truncated y-axis in a ggplot2 line chart. Useful to highlight
+that the y-axis does not start at zero or a natural baseline.
+}
+\details{
+The function adds a vertical dark intersected by two diagonal parallel lines on the
+left hand side of the plot at the specified \code{break_at} y-value, visually indicating
+that the y-axis has been broken or truncated. It updates the y-axis breaks, labels, and
+limits based on the provided arguments.
+
+The \code{y_labels} argument can be a vector of labels, a formatting function
+(e.g., \code{scales::label_percent()}), or \code{waiver()} to use default labels.
+If \code{y_origin_override} is supplied, the first y-axis value is replaced
+numerically before the labelling function is applied, ensuring consistent formatting.
+
+Note that if you want ticks to appear outside the visible \code{y_limits},
+consider using \code{\link[ggplot2]{coord_cartesian}(ylim = ...)} instead of
+setting \code{limits} in \code{scale_y_continuous()}, as the latter clips ticks
+outside the range.
 }
 \examples{
-# Load pkgs:
 library(ggplot2)
 library(scales)
 
-# Create data set:
-df <- data.frame(x = 1:20, y = rnorm(20, mean = 12000, sd = 2000))
+p <- ggplot(mtcars, aes(wt, mpg)) + geom_line()
 
-# Create basic plot:
-p <- ggplot(df, aes(x, y)) + geom_line()
+# Simple break symbol with default breaks and limits:
+add_break_symbol(p, break_at = 10)
 
-# Show plot:
-p
+# Custom breaks, labels, limits, and override first label to zero:
+add_break_symbol(
+  p,
+  break_at = 7.5,
+  y_breaks = seq(5, 35, 5),
+  y_labels = label_number(accuracy = 1),
+  y_limits = c(5, 35),
+  y_origin_override = 0
+ )
 
-# Add break symbol to plot:
-p + add_break_symbol(p)
-
-# Add break symbol and re-format y-axis:
-p + add_break_symbol(p, y_fmt = "comma", y_fmt_args = list(accuracy = 0.1))
-}
-\author{
-Si Maxwell (simon.maxwell@ukhsa.gov.uk)
 }
