@@ -92,52 +92,59 @@ add_break_symbol <- function(
 
   # Check `plot` is a gg or ggplot object:
   if (!ggplot2::is_ggplot(plot)) {
-    cli::cli_abort("{.var plot} {.strong must} be a {.cls gg} or {.cls ggplot} object.")
+    cli::cli_abort("{.var plot} must be a {.cls gg} or {.cls ggplot} object.")
   }
 
   # Extract chart type:
   plot_type <- ggcheck::get_geoms(p)
   is_line <- plot_type == "line"
 
-  # Function to check if argument has been waived:
-  is_waive <- function(x) inherits(x, "waiver")
-
   # Check `plot` is a line chart:
   if (!is_line) {
     cli::cli_abort(
       c(
         "!" = "{.fn add_break_symbol} will {.strong not} add a break symbol to a {plot_type} chart.",
-        "i" = "{.var plot} {.strong must} be a line chart."
+        "i" = "{.var plot} must be a line chart."
       )
     )
   }
 
   # Check `break_at` is numeric of length 1:
   if (!is.numeric(break_at) || length(break_at) != 1) {
-    cli::cli_abort("{.var break_at} {.strong must} be a numeric vector of length 1.")
+    cli::cli_abort("{.var break_at} must be a numeric vector of length 1.")
   }
+
+  # Function to check if argument has been waived:
+  is_waive <- function(x) inherits(x, "waiver")
 
   # Check `y_breaks` is a numeric vector:
   if (!is_waive(y_breaks)) {
     if (!is.numeric(y_breaks)) {
-      cli::cli_abort("{.var y_breaks} {.strong must} be a numeric vector.")
+      cli::cli_abort("{.var y_breaks} must be a numeric vector.")
     }
   }
 
-  # Check `y_label` is of format...
-  # scales::label_*
+  # Check `y_label` is a function
+  if (!is_waive(y_labels)) {
+    if (!is.function(y_labels)) {
+      cli::cli_abort(c(
+        x = "{.var y_labels} must be a labeller function from the {.pkg scales} package.",
+        i = "For example: {.fn scales::label_comma} or {.fn scales::label_percent}."
+      ))
+    }
+  }
 
   # Check `y_limits` is a numeric vector of length 2:
   if (!is.null(y_limits)) {
     if (!is.numeric(y_limits) || length(y_limits) != 2) {
-      cli::cli_abort("{.var y_limits} {.strong must} be a numeric vector of length 2: {.code y_limits = c(ymin, ymax)}.")
+      cli::cli_abort("{.var y_limits} must be a numeric vector of length 2: {.code y_limits = c(ymin, ymax)}.")
     }
   }
 
   # Check `y_origin_override` is a numeric scalar (if not NULL):
   if (!is.null(y_origin_override)) {
     if (!is.numeric(y_origin_override)) {
-      cli::cli_abort("{.var y_origin_override} {.strong must} be a numeric (default: NULL).")
+      cli::cli_abort("{.var y_origin_override} must be a numeric (default: NULL).")
     }
   }
 
@@ -155,7 +162,7 @@ add_break_symbol <- function(
 
   # Check all elements in `break_style` are numeric:
   if (any(!sapply(break_style[style_keys], is.numeric))) {
-    cli::cli_abort("Each element in {.var y_limits} {.strong must} be a numeric.")
+    cli::cli_abort("Each element in {.var y_limits} must be a numeric.")
   }
 
   # Extract height, width and linewidth from list:
@@ -178,49 +185,67 @@ add_break_symbol <- function(
   y_d_min <- min(y_d_range)
   y_d_max <- max(y_d_range)
 
-  # If user has specified `y_limits` then use min and max supplied over data or plot:
-  if (is.null(y_limits)) {
-    y_min <- min(c(c(y_d_min, y_p_min)))
-    y_max <- max(c(y_d_max, y_p_max))
-  } else {
-    y_min <- min(y_limits)
-    y_max <- max(y_limits)
-  }
-
   # Create function to check value falls within a defined range:
   between <- function(x, left, right) {
     x >= left & x <= right
   }
 
-  # Check break_at is inside the range of the y variable in the underlying data:
+  # Check `break_at` is outside the range of the plot data:
   if (between(break_at,
               y_d_min,
               y_d_max)) {
     cli::cli_abort("{.var break_at} must lie outside the range of the underlying chart data.")
   }
 
-  # y_breaks must be numeric vector (or coercible)
-  breaks <- y_breaks
+  # If `y_breaks` and `y_limits` are not supplied by the user, work out sensible values from the plot data and break symbol coordinate:
+  if (is_waive(y_breaks) && is.null(y_limits)) {
 
-  # If override is provided, replace the first break value
-  if (!is.null(y_origin_override)) {
-    if (length(breaks) < 1) stop("No breaks to override.")
-    breaks[1] <- y_origin_override
+    # Get y-axis breaks from plot:
+    y_p_breaks <- ggplot2::ggplot_build(plot)$layout$panel_params[[1]]$y$breaks
+
+    # Calculate differences between y-axis breaks:
+    y_break_diff <- diff(y_p_breaks)
+
+    # Get spacing between y-axis breaks:
+    y_break_spacing <- median(y_break_diff, na.rm = TRUE)
+
+    # Find appropriate break points
+    # Start from a round number below `break_at` (better to use `break_at` which has to be lower than the minimum value in the plot data):
+    start_break <- floor((break_at - y_break_spacing)  / y_break_spacing) * y_break_spacing # adds in some buffer below the break symbol equal to the y-axis spacing
+    # End at a round number above the maximum value in the plot data:
+    end_break <- ceiling(y_d_max / y_break_spacing) * y_break_spacing
+
+    # Generate new breaks:
+    y_breaks <- seq(start_break, end_break, by = y_break_spacing)
+
+    # Create new limits:
+    y_limits <- c(start_break, end_break)
+
   }
 
-  # Now apply label formatting
-  if (is.function(y_labels)) {
-    y_origin_override <- y_labels(breaks)
-  } else if (identical(y_labels, waiver())) {
-    y_origin_override <- breaks
-  } else {
-    # user supplied vector of labels (character or numeric)
+  # If label style is a function and label override is not provided:
+  if (is.function(y_labels) && is.null(y_origin_override)) {
+
+    # User supplied vector of labels:
     y_origin_override <- y_labels
+
+    # If label style is a function and label override is provided:
+  } else if (is.function(y_labels) && !is.null(y_origin_override)) {
+
+    y_labels_fmt <- y_breaks
+    y_labels_fmt[1] <- y_origin_override
+    y_origin_override <- y_labels(y_labels_fmt)
+
+    # If label style is waived use the breaks (either user-supplied or derived):
+  } else if (is_waive(y_labels)) {
+
+    y_origin_override <- y_breaks
+
   }
 
   # Round minimum and maximum x values in the plot down to nearest integer:
   x_p_min <- floor(x_p_min)
-  x_p_max <- floor(x_p_max) # ceiling?
+  x_p_max <- floor(x_p_max)
 
   # Define coordinates for the break symbol:
   ydiff <- ((y_d_max - break_at) * 0.02) * height
@@ -237,10 +262,10 @@ add_break_symbol <- function(
     # Vertical line above break symbol:
     ggplot2::annotate(
       "segment",
-      x = x_p_min, # origin should be 0
-      xend = x_p_min, # origin should be 0
+      x = x_p_min,
+      xend = x_p_min,
       y = ystart,
-      yend = y_max,
+      yend = y_limits[2],
       linewidth = linewidth,
       colour = "#3D3D3D"
     ) +
@@ -250,7 +275,7 @@ add_break_symbol <- function(
       "segment",
       x = x_p_min,
       xend = x_p_min,
-      y = y_min,
+      y = y_limits[1],
       yend = yend,
       linewidth = linewidth,
       colour = "#3D3D3D"
@@ -281,6 +306,7 @@ add_break_symbol <- function(
     # Define new y-axis scale:
     ggplot2::scale_y_continuous(
       breaks = y_breaks,
+      expand = ggplot2::expansion(mult = c(0, 0.02)),
       labels = y_origin_override,
       limits = y_limits
     ) +
