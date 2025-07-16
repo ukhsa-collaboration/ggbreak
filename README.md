@@ -93,7 +93,11 @@ add_break_symbol(
 
 Author:
 
-Head of Profession for Statistics Office Analytical Quality Assurance and Standards Analysis and Intelligence Assessment Chief Data Officer Group UK Health Security Agency
+Head of Profession for Statistics Office
+Analytical Quality Assurance and Standards
+Analysis and Intelligence Assessment
+Chief Data Officer Group
+UK Health Security Agency
 
 ## Licence
 
