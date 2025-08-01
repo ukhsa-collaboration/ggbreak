@@ -95,9 +95,21 @@ add_break_symbol <- function(
     cli::cli_abort("{.var plot} must be a {.cls gg} or {.cls ggplot} object.")
   }
 
+  # Get number of layers (geoms) in `plot`:
+  n_layers <- length(plot$layers)
+
+  # Create function to extract all layers (geoms) in `plot`:
+  # From RStudio's {ggbcheck} package.
+  ith_geom <- function(p, i) {
+    geom <- class(p$layers[[i]]$geom)[1]
+    gsub("geom", "", tolower(geom))
+  }
+
   # Extract chart type:
-  plot_type <- ggcheck::get_geoms(p)
-  is_line <- plot_type == "line"
+  plot_type <- vapply(seq_len(n_layers), ith_geom, character(1), p = plot)
+
+  # Is there a line geom in the chart?
+  is_line <- any(plot_type %in% "line")
 
   # Check `plot` is a line chart:
   if (!is_line) {
@@ -170,18 +182,18 @@ add_break_symbol <- function(
   width <- break_style$width
   linewidth <- break_style$linewidth
 
-  # Extract xmin and xmax from the plot:
-  x_p_range <- ggplot2::ggplot_build(p)$layout$panel_params[[1]]$x.range
+  # Extract xmin and xmax from the `plot`:
+  x_p_range <- ggplot2::ggplot_build(plot)$layout$panel_params[[1]]$x.range
   x_p_min <- min(x_p_range, na.rm = TRUE)
   x_p_max <- max(x_p_range, na.rm = TRUE)
 
-  # Extract ymin and ymax from the plot:
-  y_p_range <- ggplot2::ggplot_build(p)$layout$panel_params[[1]]$y.range
+  # Extract ymin and ymax from the `plot`:
+  y_p_range <- ggplot2::ggplot_build(plot)$layout$panel_params[[1]]$y.range
   y_p_min <- min(y_p_range, na.rm = TRUE)
   y_p_max <- max(y_p_range, na.rm = TRUE)
 
   # Extract ymin and ymax from the data:
-  y_d_range <- range(ggplot2::ggplot_build(p)$data[[1]]$y)
+  y_d_range <- range(ggplot2::ggplot_build(plot)$data[[1]]$y)
   y_d_min <- min(y_d_range)
   y_d_max <- max(y_d_range)
 
