@@ -58,7 +58,6 @@
 #' @importFrom ggplot2 scale_y_continuous
 #' @importFrom ggplot2 coord_cartesian
 #' @importFrom ggplot2 waiver
-#' @importFrom ggcheck get_geoms
 #'
 #' @examples
 #' library(ggplot2)
