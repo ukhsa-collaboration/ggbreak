@@ -51,17 +51,19 @@ Now, let's add a break symbol to the y-axis, specifying the break symbol at y = 
 
 ### Example 1: basic line chart with break symbol
 
+`add_break_symbol()` can take a range of additional arguments which control the scale of the y-axis and the formatting of the break symbol.
+
+For this reason, you should not use `scale_y_continuous()` to format your y-axis (for example the breaks, labels, limits) – all formatting of the y-axis is handled by `add_break_symbol()` and must be specified by the user. At minimum, you must provide a gg or ggplot object and a break symbol position (`break_at`) for the function to work.
+
 ``` r
 add_break_symbol(p, break_at = 0.4)
 ```
 
 ![](man/img/plot-with-symbol.svg)
 
-`add_break_symbol()` can take a range of additional arguments which control the scale of the y-axis and the formatting of the break symbol.
-
-For this reason, you should not use `scale_y_continuous()` to format your y-axis (for example the breaks, labels, limits) – all formatting of the y-axis is handled by `add_break_symbol()` and must be specified by the user. At minimum, you must provide a gg or ggplot object and a break symbol position (`break_at`) for the function to work.
-
 ### Example 2: line chart with break symbol and Analysis Function theme
+
+`add_break_symbol()` works well when used with the Government Analysis Function's [afcharts package](https://best-practice-and-impact.github.io/afcharts/).
 
 ``` r
 library(afcharts)
@@ -84,8 +86,6 @@ add_break_symbol(
   y_origin_override = 0
 )
 ```
-
-`add_break_symbol()` works well when used with the Government Analysis Function's [afcharts package](https://best-practice-and-impact.github.io/afcharts/).
 
 ![](man/img/af-plot-with-symbol.svg)
 
