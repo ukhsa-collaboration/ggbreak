@@ -51,6 +51,7 @@
 #' setting \code{limits} in \code{scale_y_continuous()}, as the latter clips ticks
 #' outside the range.
 #'
+#' @importFrom stats median
 #' @importFrom cli cli_abort
 #' @importFrom ggplot2 is_ggplot
 #' @importFrom ggplot2 ggplot_build
@@ -58,6 +59,7 @@
 #' @importFrom ggplot2 scale_y_continuous
 #' @importFrom ggplot2 coord_cartesian
 #' @importFrom ggplot2 waiver
+#' @import scales
 #'
 #' @examples
 #' library(ggplot2)
@@ -218,7 +220,7 @@ add_break_symbol <- function(
     y_break_diff <- diff(y_p_breaks)
 
     # Get spacing between y-axis breaks:
-    y_break_spacing <- median(y_break_diff, na.rm = TRUE)
+    y_break_spacing <- stats::median(y_break_diff, na.rm = TRUE)
 
     # Find appropriate break points
     # Start from a round number below `break_at` (better to use `break_at` which has to be lower than the minimum value in the plot data):
