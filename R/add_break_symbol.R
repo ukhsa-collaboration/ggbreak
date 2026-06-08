@@ -101,13 +101,6 @@ add_break_symbol <- function(
   # Get number of layers (geoms) in `plot`:
   n_layers <- length(plot$layers)
 
-  # Create function to extract all layers (geoms) in `plot`:
-  # From RStudio's {ggbcheck} package.
-  ith_geom <- function(p, i) {
-    geom <- class(p$layers[[i]]$geom)[1]
-    gsub("geom", "", tolower(geom))
-  }
-
   # Extract chart type:
   plot_type <- vapply(seq_len(n_layers), ith_geom, character(1), p = plot)
 
@@ -128,9 +121,6 @@ add_break_symbol <- function(
   if (!is.numeric(break_at) || length(break_at) != 1) {
     cli::cli_abort("{.var break_at} must be a numeric vector of length 1.")
   }
-
-  # Function to check if argument has been waived:
-  is_waive <- function(x) inherits(x, "waiver")
 
   # Check `y_breaks` is a numeric vector:
   if (!is_waive(y_breaks)) {
@@ -199,11 +189,6 @@ add_break_symbol <- function(
   y_d_range <- range(ggplot2::ggplot_build(plot)$data[[1]]$y)
   y_d_min <- min(y_d_range)
   y_d_max <- max(y_d_range)
-
-  # Create function to check value falls within a defined range:
-  between <- function(x, left, right) {
-    x >= left & x <= right
-  }
 
   # Check `break_at` is outside the range of the plot data:
   if (between(break_at,
