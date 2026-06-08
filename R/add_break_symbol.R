@@ -175,7 +175,7 @@ add_break_symbol <- function(
 
   # Check all elements in `break_style` are numeric:
   if (any(!sapply(break_style[style_keys], is.numeric))) {
-    cli::cli_abort("Each element in {.var y_limits} must be a numeric.")
+    cli::cli_abort("Each element in {.var break_style} must be a numeric.")
   }
 
   # Extract height, width and linewidth from list:
