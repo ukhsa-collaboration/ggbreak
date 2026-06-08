@@ -11,7 +11,7 @@ add_break_symbol(
   y_labels = waiver(),
   y_limits = NULL,
   y_origin_override = NULL,
-  break_style = list(height = 1, width = 1, linewidth = 0.5)
+  break_style = list(height = 1, width = 1, linewidth = 0.5, colour = "#3D3D3D")
 )
 }
 \arguments{
