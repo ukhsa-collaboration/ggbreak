@@ -8,24 +8,24 @@
 #'   modifications will be added.
 #' @param break_at Numeric scalar specifying the y-axis coordinate at which
 #'   to place the break symbol.
-#' @param y_breaks Numeric vector or \code{waiver()} specifying the breaks
-#'   on the y-axis. Passed to \code{\link[ggplot2]{scale_y_continuous}(breaks =)}.
-#'   Defaults to \code{waiver()}, letting ggplot2 determine breaks automatically.
-#' @param y_labels Either a vector of labels corresponding to \code{y_breaks},
-#'   a labeling function (e.g., from \code{\link[scales]{label_percent}}), or
-#'   \code{waiver()}. Passed to
-#'   \code{\link[ggplot2]{scale_y_continuous}(labels=)}.
+#' @param y_breaks Numeric vector or \code{waiver()} specifying the breaks on
+#'   the y-axis. Passed to \code{\link[ggplot2]{scale_y_continuous}(breaks =)}.
+#'   Defaults to \code{waiver()}, letting ggplot2 determine breaks
+#'    automatically.
+#' @param y_labels Either a labeling function (e.g., from
+#'    \code{\link[scales]{label_percent}}), or \code{waiver()}. Passed
+#'    to \code{\link[ggplot2]{scale_y_continuous}(labels=)}.
 #' @param y_limits Numeric vector of length two specifying the limits of the
 #'   y-axis. Passed to \code{\link[ggplot2]{scale_y_continuous}(limits =)}.
 #'   Defaults to \code{NULL}, which lets ggplot2 use default limits.
 #' @param break_style A named list controlling the break symbol appearance:
 #'   \describe{
-#'     \item{height}{Numeric scalar indicating the vertical size of the break symbol
-#'       (default 1).}
-#'     \item{width}{Numeric scalar indicating the horizontal size of the break symbol
-#'       (default 1).}
-#'     \item{linewidth}{Numeric scalar controlling the width of the break symbol
-#'       (default 0.5).}
+#'     \item{height}{Numeric scalar indicating the vertical size of the
+#'       break symbol (default 1).}
+#'     \item{width}{Numeric scalar indicating the horizontal size of the
+#'       break symbol (default 1).}
+#'     \item{linewidth}{Numeric scalar controlling the width of the
+#'       break symbol (default 0.5).}
 #'   }
 #' @param y_origin_override Optional numeric value to replace the first
 #'   y-axis value before applying \code{y_labels}. This allows customisation of
@@ -36,20 +36,22 @@
 #'   adjusted axis scale applied.
 #'
 #' @details
-#' The function adds a vertical dark intersected by two diagonal parallel lines on the
-#' left hand side of the plot at the specified \code{break_at} y-value, visually indicating
-#' that the y-axis has been broken or truncated. It updates the y-axis breaks, labels, and
-#' limits based on the provided arguments.
+#' The function adds a dark vertical line intersected by two diagonal parallel
+#' lines on the left hand side of the plot at the specified \code{break_at}
+#' y-value, visually indicating that the y-axis has been broken or truncated.
+#' It updates the y-axis breaks, labels, and limits based on the provided
+#' arguments.
 #'
-#' The \code{y_labels} argument can be a vector of labels, a formatting function
-#' (e.g., \code{scales::label_percent()}), or \code{waiver()} to use default labels.
-#' If \code{y_origin_override} is supplied, the first y-axis value is replaced
-#' numerically before the labelling function is applied, ensuring consistent formatting.
+#' The \code{y_labels} argument can be a vector of labels, a formatting
+#' function (e.g., \code{scales::label_percent()}), or \code{waiver()} to
+#' use default labels. If \code{y_origin_override} is supplied, the first
+#' y-axis value is replaced numerically before the labelling function is
+#' applied, ensuring consistent formatting.
 #'
 #' Note that if you want ticks to appear outside the visible \code{y_limits},
 #' consider using \code{\link[ggplot2]{coord_cartesian}(ylim = ...)} instead of
-#' setting \code{limits} in \code{scale_y_continuous()}, as the latter clips ticks
-#' outside the range.
+#' setting \code{limits} in \code{scale_y_continuous()}, as the latter clips
+#' ticks outside the range.
 #'
 #' @importFrom stats median
 #' @importFrom cli cli_abort
@@ -82,13 +84,13 @@
 #'
 #' @export
 add_break_symbol <- function(
-    plot,
-    break_at,
-    y_breaks = waiver(),
-    y_labels = waiver(),
-    y_limits = NULL,
-    y_origin_override = NULL,
-    break_style = list(height = 1, width = 1, linewidth = 0.5)
+  plot,
+  break_at,
+  y_breaks = waiver(),
+  y_labels = waiver(),
+  y_limits = NULL,
+  y_origin_override = NULL,
+  break_style = list(height = 1, width = 1, linewidth = 0.5)
 ) {
 
   # Check `plot` is a gg or ggplot object:
@@ -137,7 +139,7 @@ add_break_symbol <- function(
     }
   }
 
-  # Check `y_label` is a function
+  # Check `y_label` is a function:
   if (!is_waive(y_labels)) {
     if (!is.function(y_labels)) {
       cli::cli_abort(c(
