@@ -14,7 +14,16 @@
 #'    automatically.
 #' @param y_labels Either a labeling function (e.g., from
 #'    \code{\link[scales]{label_percent}}), or \code{waiver()}. Passed
-#'    to \code{\link[ggplot2]{scale_y_continuous}(labels=)}.
+#'    to \code{\link[ggplot2]{scale_y_continuous}(labels=)}. The following
+#'    labelling functions from the \code{scales} package are supported:
+#'    \itemize{
+#'        \item{\code{\link[scales]{label_number}}}
+#'        \item{\code{\link[scales]{label_comma}}}
+#'        \item{\code{\link[scales]{label_percent}}}
+#'        \item{\code{\link[scales]{label_currency}}}
+#'        \item{\code{\link[scales]{label_bytes}}}
+#'        \item{\code{\link[scales]{label_scientific}}}
+#'        }
 #' @param y_limits Numeric vector of length two specifying the limits of the
 #'   y-axis. Passed to \code{\link[ggplot2]{scale_y_continuous}(limits =)}.
 #'   Defaults to \code{NULL}, which lets ggplot2 use default limits.
@@ -26,6 +35,8 @@
 #'       break symbol (default 1).}
 #'     \item{linewidth}{Numeric scalar controlling the width of the
 #'       break symbol (default 0.5).}
+#'     \item{colour}{Character string specifying the colour of the
+#'       vertical line and break symbol (default "#3D3D3D").}
 #'   }
 #' @param y_origin_override Optional numeric value to replace the first
 #'   y-axis value before applying \code{y_labels}. This allows customisation of
@@ -42,16 +53,11 @@
 #' It updates the y-axis breaks, labels, and limits based on the provided
 #' arguments.
 #'
-#' The \code{y_labels} argument can be a vector of labels, a formatting
+#' The \code{y_labels} argument can be a formatting
 #' function (e.g., \code{scales::label_percent()}), or \code{waiver()} to
 #' use default labels. If \code{y_origin_override} is supplied, the first
-#' y-axis value is replaced numerically before the labelling function is
+#' y-axis value is replaced before the labelling function is
 #' applied, ensuring consistent formatting.
-#'
-#' Note that if you want ticks to appear outside the visible \code{y_limits},
-#' consider using \code{\link[ggplot2]{coord_cartesian}(ylim = ...)} instead of
-#' setting \code{limits} in \code{scale_y_continuous()}, as the latter clips
-#' ticks outside the range.
 #'
 #' @importFrom stats median
 #' @importFrom cli cli_abort
@@ -61,7 +67,12 @@
 #' @importFrom ggplot2 scale_y_continuous
 #' @importFrom ggplot2 coord_cartesian
 #' @importFrom ggplot2 waiver
-#' @import scales
+#' @importFrom scales label_number
+#' @importFrom scales label_comma
+#' @importFrom scales label_percent
+#' @importFrom scales label_currency
+#' @importFrom scales label_bytes
+#' @importFrom scales label_scientific
 #' @importFrom utils modifyList
 #'
 #' @examples
