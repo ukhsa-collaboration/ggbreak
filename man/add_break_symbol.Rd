@@ -11,7 +11,7 @@ add_break_symbol(
   y_labels = waiver(),
   y_limits = NULL,
   y_origin_override = NULL,
-  break_style = list(height = 1, width = 1, linewidth = 0.5)
+  break_style = list(height = 1, width = 1, linewidth = 0.5, colour = "#3D3D3D")
 )
 }
 \arguments{
@@ -28,7 +28,16 @@ automatically.}
 
 \item{y_labels}{Either a labeling function (e.g., from
 \code{\link[scales]{label_percent}}), or \code{waiver()}. Passed
-to \code{\link[ggplot2]{scale_y_continuous}(labels=)}.}
+to \code{\link[ggplot2]{scale_y_continuous}(labels=)}. The following
+labelling functions from the \code{scales} package are supported:
+\itemize{
+\item{\code{\link[scales]{label_number}}}
+\item{\code{\link[scales]{label_comma}}}
+\item{\code{\link[scales]{label_percent}}}
+\item{\code{\link[scales]{label_currency}}}
+\item{\code{\link[scales]{label_bytes}}}
+\item{\code{\link[scales]{label_scientific}}}
+}}
 
 \item{y_limits}{Numeric vector of length two specifying the limits of the
 y-axis. Passed to \code{\link[ggplot2]{scale_y_continuous}(limits =)}.
@@ -47,6 +56,8 @@ break symbol (default 1).}
 break symbol (default 1).}
 \item{linewidth}{Numeric scalar controlling the width of the
 break symbol (default 0.5).}
+\item{colour}{Character string specifying the colour of the
+vertical line and break symbol (default "#3D3D3D").}
 }}
 }
 \value{
@@ -65,16 +76,11 @@ y-value, visually indicating that the y-axis has been broken or truncated.
 It updates the y-axis breaks, labels, and limits based on the provided
 arguments.
 
-The \code{y_labels} argument can be a vector of labels, a formatting
+The \code{y_labels} argument can be a formatting
 function (e.g., \code{scales::label_percent()}), or \code{waiver()} to
 use default labels. If \code{y_origin_override} is supplied, the first
-y-axis value is replaced numerically before the labelling function is
+y-axis value is replaced before the labelling function is
 applied, ensuring consistent formatting.
-
-Note that if you want ticks to appear outside the visible \code{y_limits},
-consider using \code{\link[ggplot2]{coord_cartesian}(ylim = ...)} instead of
-setting \code{limits} in \code{scale_y_continuous()}, as the latter clips
-ticks outside the range.
 }
 \examples{
 library(ggplot2)

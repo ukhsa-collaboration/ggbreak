@@ -14,7 +14,16 @@
 #'    automatically.
 #' @param y_labels Either a labeling function (e.g., from
 #'    \code{\link[scales]{label_percent}}), or \code{waiver()}. Passed
-#'    to \code{\link[ggplot2]{scale_y_continuous}(labels=)}.
+#'    to \code{\link[ggplot2]{scale_y_continuous}(labels=)}. The following
+#'    labelling functions from the \code{scales} package are supported:
+#'    \itemize{
+#'        \item{\code{\link[scales]{label_number}}}
+#'        \item{\code{\link[scales]{label_comma}}}
+#'        \item{\code{\link[scales]{label_percent}}}
+#'        \item{\code{\link[scales]{label_currency}}}
+#'        \item{\code{\link[scales]{label_bytes}}}
+#'        \item{\code{\link[scales]{label_scientific}}}
+#'        }
 #' @param y_limits Numeric vector of length two specifying the limits of the
 #'   y-axis. Passed to \code{\link[ggplot2]{scale_y_continuous}(limits =)}.
 #'   Defaults to \code{NULL}, which lets ggplot2 use default limits.
@@ -26,6 +35,8 @@
 #'       break symbol (default 1).}
 #'     \item{linewidth}{Numeric scalar controlling the width of the
 #'       break symbol (default 0.5).}
+#'     \item{colour}{Character string specifying the colour of the
+#'       vertical line and break symbol (default "#3D3D3D").}
 #'   }
 #' @param y_origin_override Optional numeric value to replace the first
 #'   y-axis value before applying \code{y_labels}. This allows customisation of
@@ -42,16 +53,11 @@
 #' It updates the y-axis breaks, labels, and limits based on the provided
 #' arguments.
 #'
-#' The \code{y_labels} argument can be a vector of labels, a formatting
+#' The \code{y_labels} argument can be a formatting
 #' function (e.g., \code{scales::label_percent()}), or \code{waiver()} to
 #' use default labels. If \code{y_origin_override} is supplied, the first
-#' y-axis value is replaced numerically before the labelling function is
+#' y-axis value is replaced before the labelling function is
 #' applied, ensuring consistent formatting.
-#'
-#' Note that if you want ticks to appear outside the visible \code{y_limits},
-#' consider using \code{\link[ggplot2]{coord_cartesian}(ylim = ...)} instead of
-#' setting \code{limits} in \code{scale_y_continuous()}, as the latter clips
-#' ticks outside the range.
 #'
 #' @importFrom stats median
 #' @importFrom cli cli_abort
@@ -61,7 +67,13 @@
 #' @importFrom ggplot2 scale_y_continuous
 #' @importFrom ggplot2 coord_cartesian
 #' @importFrom ggplot2 waiver
-#' @import scales
+#' @importFrom scales label_number
+#' @importFrom scales label_comma
+#' @importFrom scales label_percent
+#' @importFrom scales label_currency
+#' @importFrom scales label_bytes
+#' @importFrom scales label_scientific
+#' @importFrom utils modifyList
 #'
 #' @examples
 #' library(ggplot2)
@@ -90,7 +102,7 @@ add_break_symbol <- function(
   y_labels = waiver(),
   y_limits = NULL,
   y_origin_override = NULL,
-  break_style = list(height = 1, width = 1, linewidth = 0.5)
+  break_style = list(height = 1, width = 1, linewidth = 0.5, colour = "#3D3D3D")
 ) {
 
   # Check `plot` is a gg or ggplot object:
@@ -100,13 +112,6 @@ add_break_symbol <- function(
 
   # Get number of layers (geoms) in `plot`:
   n_layers <- length(plot$layers)
-
-  # Create function to extract all layers (geoms) in `plot`:
-  # From RStudio's {ggbcheck} package.
-  ith_geom <- function(p, i) {
-    geom <- class(p$layers[[i]]$geom)[1]
-    gsub("geom", "", tolower(geom))
-  }
 
   # Extract chart type:
   plot_type <- vapply(seq_len(n_layers), ith_geom, character(1), p = plot)
@@ -128,9 +133,6 @@ add_break_symbol <- function(
   if (!is.numeric(break_at) || length(break_at) != 1) {
     cli::cli_abort("{.var break_at} must be a numeric vector of length 1.")
   }
-
-  # Function to check if argument has been waived:
-  is_waive <- function(x) inherits(x, "waiver")
 
   # Check `y_breaks` is a numeric vector:
   if (!is_waive(y_breaks)) {
@@ -163,53 +165,89 @@ add_break_symbol <- function(
     }
   }
 
-  style_keys <- c("height", "width", "linewidth")
+  style_keys <- c("height", "width", "linewidth", "colour")
 
-  # Check `break_style` is a named list containing the break symbol formatting info:
-  if (!is.list(break_style) || !all(style_keys %in% names(break_style))) {
-    cli::cli_abort(
-      c(
-        "!" = "{.var break_style} must be a list defining the height, width and linewidth of the break symbol.}.",
-        "i" = "Default: {.code break_style = list(height = 1, width = 1, linewidth = 0.5)}"
-      )
-    )
+  default_break_style <- list(
+    height = 1,
+    width = 1,
+    linewidth = 0.5,
+    colour = "#3D3D3D"
+  )
+
+  # Check `break_style` is a named list:
+  if (!is.list(break_style)) {
+    cli::cli_abort("{.var break_style} must be a named list.")
   }
 
-  # Check all elements in `break_style` are numeric:
-  if (any(!sapply(break_style[style_keys], is.numeric))) {
-    cli::cli_abort("Each element in {.var break_style} must be a numeric.")
+  # Reject unknown names so typos fail fast:
+  unknown_keys <- setdiff(names(break_style), style_keys)
+
+  if (length(unknown_keys) > 0) {
+    cli::cli_abort(c(
+      "!" = "{.var break_style} contains unknown field(s): {.val {unknown_keys}}.",
+      "i" = "Allowed fields are {.val height}, {.val width}, {.val linewidth}, {.val colour}."
+    ))
   }
 
-  # Extract height, width and linewidth from list:
+  # Merge user overrides onto defaults:
+  break_style <- utils::modifyList(default_break_style, break_style)
+
+  # Extract height, width, linewidth and colour from merged list:
   height <- break_style$height
   width <- break_style$width
   linewidth <- break_style$linewidth
+  colour <- break_style$colour
+
+  if (!is.numeric(height) || length(height) != 1) {
+    cli::cli_abort(
+      "{.var break_style$height} must be a numeric vector of length 1."
+    )
+  }
+
+  if (!is.numeric(width) || length(width) != 1) {
+    cli::cli_abort(
+      "{.var break_style$width} must be a numeric vector of length 1."
+    )
+  }
+
+  if (!is.numeric(linewidth) || length(linewidth) != 1) {
+    cli::cli_abort(
+      "{.var break_style$linewidth} must be a numeric vector of length 1."
+    )
+  }
+
+  if (!is.character(colour) || length(colour) != 1) {
+    cli::cli_abort(
+      "{.var break_style$colour} must be a character vector of length 1."
+    )
+  }
+
+  # Build the ggplot object to access panel parameters and data ranges:
+  build <- ggplot2::ggplot_build(plot)
+  
+  # Extract panel parameters from the built plot:
+  panel_params <- build$layout$panel_params[[1]]
 
   # Extract xmin and xmax from the `plot`:
-  x_p_range <- ggplot2::ggplot_build(plot)$layout$panel_params[[1]]$x.range
+  x_p_range <- panel_params$x.range
   x_p_min <- min(x_p_range, na.rm = TRUE)
   x_p_max <- max(x_p_range, na.rm = TRUE)
 
   # Extract ymin and ymax from the `plot`:
-  y_p_range <- ggplot2::ggplot_build(plot)$layout$panel_params[[1]]$y.range
+  y_p_range <- panel_params$y.range
   y_p_min <- min(y_p_range, na.rm = TRUE)
   y_p_max <- max(y_p_range, na.rm = TRUE)
 
   # Extract ymin and ymax from the data:
-  y_d_range <- range(ggplot2::ggplot_build(plot)$data[[1]]$y)
-  y_d_min <- min(y_d_range)
-  y_d_max <- max(y_d_range)
-
-  # Create function to check value falls within a defined range:
-  between <- function(x, left, right) {
-    x >= left & x <= right
-  }
+  y_d_range <- range(build$data[[1]]$y, na.rm = TRUE)
+  y_d_min <- min(y_d_range, na.rm = TRUE)
+  y_d_max <- max(y_d_range, na.rm = TRUE)
 
   # Check `break_at` is outside the range of the plot data:
-  if (between(break_at,
-              y_d_min,
-              y_d_max)) {
-    cli::cli_abort("{.var break_at} must lie outside the range of the underlying chart data.")
+  if (between(break_at, y_d_min, y_d_max)) {
+    cli::cli_abort(
+      "{.var break_at} must lie outside the range of the underlying chart data."
+    )
   }
 
   # If `y_breaks` and `y_limits` are not supplied by the user, work out sensible values from the plot data and break symbol coordinate:
@@ -242,19 +280,26 @@ add_break_symbol <- function(
   if (is.function(y_labels) && is.null(y_origin_override)) {
 
     # User supplied vector of labels:
-    y_origin_override <- y_labels
+    y_labels_out <- y_labels
 
     # If label style is a function and label override is provided:
   } else if (is.function(y_labels) && !is.null(y_origin_override)) {
 
     y_labels_fmt <- y_breaks
     y_labels_fmt[1] <- y_origin_override
-    y_origin_override <- y_labels(y_labels_fmt)
+    y_labels_out <- y_labels(y_labels_fmt)
 
-    # If label style is waived use the breaks (either user-supplied or derived):
-  } else if (is_waive(y_labels)) {
+    # If label style is waived and label override is not provided:
+  } else if (is_waive(y_labels) && is.null(y_origin_override)) {
 
-    y_origin_override <- y_breaks
+    y_labels_out <- y_breaks
+
+    # If label style is waived and label override is provided:
+  } else if (is_waive(y_labels) && !is.null(y_origin_override)) {
+
+    y_labels_fmt <- y_breaks
+    y_labels_fmt[1] <- y_origin_override
+    y_labels_out <- y_labels_fmt
 
   }
 
@@ -282,7 +327,7 @@ add_break_symbol <- function(
       y = ystart,
       yend = y_limits[2],
       linewidth = linewidth,
-      colour = "#3D3D3D"
+      colour = colour
     ) +
 
     # Vertical line under break symbol:
@@ -293,7 +338,7 @@ add_break_symbol <- function(
       y = y_limits[1],
       yend = yend,
       linewidth = linewidth,
-      colour = "#3D3D3D"
+      colour = colour
     ) +
 
     # # Lower diagonal break symbol line:
@@ -304,7 +349,7 @@ add_break_symbol <- function(
       y = yend - ydiff,
       yend = yend + ydiff,
       linewidth = linewidth,
-      colour = "#3D3D3D"
+      colour = colour
     ) +
 
     # # Upper diagonal break symbol line:
@@ -315,15 +360,14 @@ add_break_symbol <- function(
       y = ystart - ydiff,
       yend = ystart + ydiff,
       linewidth = linewidth,
-      colour = "#3D3D3D"
+      colour = colour
     ) +
 
     # Define new y-axis scale:
     ggplot2::scale_y_continuous(
       breaks = y_breaks,
       expand = ggplot2::expansion(mult = c(0, 0.02)),
-      labels = y_origin_override,
-      limits = y_limits
+      labels = y_labels_out
     ) +
 
     ggplot2::coord_cartesian(ylim = y_limits)
